@@ -229,3 +229,24 @@ faker*
 *.accdb
 # Script normalizacion
 normalization.py
+.venv/
+env/
+
+# Credenciales — NUNCA subir al repo
+.env
+credentials/
+*.json
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.ipynb_checkpoints/
+*.egg-info/
+
+# IDEs
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
