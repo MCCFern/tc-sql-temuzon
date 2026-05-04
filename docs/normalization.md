@@ -1,5 +1,3 @@
-# Análisis de Normalización 3NF - Temuzon Database
-
 ![Temuzon Logo](./Temuzon.png)
 
 ## Índice
@@ -8,6 +6,7 @@
 3. [Análisis de Normalización 3NF](#análisis-de-normalización-3nf)
 4. [Decisiones de Diseño](#decisiones-de-diseño)
 5. [Relaciones y Restricciones](#relaciones-y-restricciones)
+
 ---
 
 ## Visión General
@@ -25,112 +24,6 @@ El diseño sigue principios de **normalización relacional de tercera forma norm
 - Eliminación de redundancia de datos
 - Facilidad de mantenimiento y actualización
 
----
-
-## Modelo de Datos
-
-### Tablas del sistema
-
-#### 1. `Paises`
-Tabla maestra que centraliza la información fiscal y geográfica de cada país.
-
-| Campo | Tipo | Descripción |
-|---|---:|---|
-| `IdPais` | INT | Identificador único de país, clave primaria |
-| `Nombre` | STRING | Nombre del país |
-| `IVA` | INT | Porcentaje de impuesto aplicado en ese país |
-
-**Observación de diseño**
-- Utilizada por Clientes (país de residencia) y Pedidos (país de envío)
-- Esta tabla se utiliza como referencia fiscal tanto para clientes como para pedidos.
-
-#### 2. `Categoria_Productos`
-Clasifica el catálogo de productos.
-
-| Campo | Tipo | Descripción |
-|---|---:|---|
-| `IdCategoria` | INT | Identificador único de categoría, clave primaria |
-| `Nombre` | STRING | Nombre visible de la categoría |
-| `Descripción` | TEXT | Descripción ampliada |
-
-**Observación de diseño**
-- Tabla maestro que define categorías de productos
-- Permite organizar el catálogo de forma jerárquica
-- Facilita búsquedas y filtros en el e-commerce
-- La categoría queda separada de producto para evitar duplicación de información.
-
-#### 3. `Productos`
-Representa el inventario vendible.
-
-| Campo | Tipo | Relación | Descripción |
-|---|---:|---|---|
-| `IdProducto` | INT | PK | Identificador del producto |
-| `IdCategoria` | INT | FK → `Categoria_Productos.IdCategoria` | Categoría asociada |
-| `Nombre` | STRING |  | Nombre del producto |
-| `Precio de venta` | FLOAT |  | Precio de venta actual |
-| `Coste` | FLOAT |  | Coste interno o de adquisición |
-| `Stock` | INT |  | Unidades disponibles |
-| `Estado` | STRING |  | Estado funcional del producto |
-
-**Observación de diseño**
-- Los importes pasan a `FLOAT` en el esquema actual, lo que permite decimales.
-- El `Stock` se actualiza en transacciones de pedidos
-- El `Estado` permite gestionar ciclo de vida de productos
-
-#### 4. `Clientes`
-Contiene la información de los clientes del sistema.
-
-| Campo | Tipo | Relación | Descripción |
-|---|---:|---|---|
-| `IdCliente` | INT | PK | Identificador único del cliente |
-| `Nombre` | STRING |  | Nombre |
-| `Apellidos` | STRING |  | Apellidos |
-| `Dirección` | STRING |  | Dirección postal |
-| `Codigo Postal` | INT |  | Código postal |
-| `Ciudad` | STRING |  | Ciudad |
-| `País` | INT | FK → `Paises.IdPais` | País de residencia |
-| `Nº Identificacion` | STRING |  | Documento de identidad |
-| `Email` | STRING |  | Correo electrónico |
-| `Telefono` | STRING |  | Teléfono |
-| `Canal de adquisición` | STRING |  | Origen de captación del cliente |
-
-**Observación de diseño**
-- Separación de Nombre y Apellidos para facilitar búsquedas y reportes
-- Dirección completa en un solo campo para simplificar, aunque podría normalizarse más si fuera necesario
-- `Nº Identificacion` como STRING para soportar diferentes formatos (DNI, pasaporte, etc.)
-- Canal de adquisición como enumeración de marketing para análisis
-
-# Análisis de Normalización 3NF - Temuzon Database
-
-![Temuzon Logo](./Temuzon.png)
-
-## Índice
-1. [Visión General](#visión-general)
-2. [Modelo de Datos](#modelo-de-datos)
-3. [Análisis de Normalización 3NF](#análisis-de-normalización-3nf)
-4. [Decisiones de Diseño](#decisiones-de-diseño)
-5. [Relaciones y Restricciones](#relaciones-y-restricciones)
-6. [Conclusión](#conclusión)
-
----
-
-<details>
-<summary><strong>Visión General</strong></summary>
-
-La base de datos **Temuzon** es un sistema de gestión de e-commerce diseñado para administrar:
-- Catálogo de productos organizados por categorías
-- Gestión de clientes e información de contacto
-- Procesamiento de pedidos y líneas de pedido
-- Sistema de pagos y seguimiento de transacciones
-- Reseñas y evaluaciones de productos
-- Información geográfica de países con cálculo de IVA
-
-El diseño sigue principios de **normalización relacional de tercera forma normal (3NF)** para garantizar:
-- Integridad referencial
-- Eliminación de redundancia de datos
-- Facilidad de mantenimiento y actualización
-
-</details>
 
 ---
 
@@ -311,8 +204,7 @@ Sistema de opinión de los clientes.
 
 ---
 
-<details>
-<summary><strong>Análisis de Normalización 3NF</strong></summary>
+## Análisis de Normalización 3NF
 
 ### 1NF
 La primera forma normal exige que cada atributo sea atómico.
@@ -362,12 +254,10 @@ La tercera forma normal exige que no existan dependencias transitivas entre atri
 - Si el precio del producto cambia más adelante, no se alteran las líneas antiguas.
 - El uso de `FLOAT` favorece la representación de decimales, aunque para finanzas puras sería mejor `DECIMAL`.
 
-</details>
 
 ---
 
-<details>
-<summary><strong>Decisiones de Diseño</strong></summary>
+## Decisiones de Diseño
 
 ### Tipos numéricos
 - Los precios y descuentos se han documentado como `FLOAT` porque así aparece el esquema modificado.
@@ -384,12 +274,11 @@ La tercera forma normal exige que no existan dependencias transitivas entre atri
 - `Pagos` separa cobro y reembolso para tener trazabilidad completa.
 - `Reseñas` se ancla a una línea comprada para evitar opiniones de productos no adquiridos.
 
-</details>
+
 
 ---
 
-<details>
-<summary><strong>Relaciones y Restricciones</strong></summary>
+## Relaciones y Restricciones
 
 ### Relaciones principales
 - `Categoria_Productos.IdCategoria` → `Productos.IdCategoria`
@@ -408,27 +297,4 @@ La tercera forma normal exige que no existan dependencias transitivas entre atri
 3. No puede existir un pago sin pedido.
 4. No puede existir una reseña sin cliente y sin línea de compra real.
 5. No deben existir países referenciados por clientes o pedidos si todavía hay registros dependientes.
-
-</details>
-
----
-
-<details>
-<summary><strong>Conclusión</strong></summary>
-
-El esquema actualizado de Temuzon mantiene una estructura relacional coherente y bastante cercana a 3NF, con algunas decisiones prácticas de desnormalización controlada para preservar histórico, trazabilidad y contexto operativo.
-
-Los cambios más relevantes respecto a la versión anterior son:
-- Eliminación del campo `Continente` en `Paises`
-- Uso de `FLOAT` para precios y descuentos en `Productos` y `Linea_Pedidos`
-- Ajuste del análisis para reflejar que algunos FKs aparecen tipados como `STRING` en la exportación
-- Refuerzo de la justificación histórica de `Pedidos`, `Linea_Pedidos` y `Pagos`
-
-En conjunto, el modelo favorece:
-- Integridad referencial
-- Auditoría de compras y pagos
-- Flexibilidad para operaciones reales de e-commerce
-- Menor redundancia estructural sin perder información importante
-
-</details>
 
