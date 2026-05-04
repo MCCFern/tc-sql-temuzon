@@ -225,5 +225,7 @@ __marimo__/
 
 #faker
 faker*
-
+#Access database files
 *.accdb
+# Script normalizacion
+normalization.py
