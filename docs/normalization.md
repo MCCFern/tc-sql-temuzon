@@ -8,7 +8,7 @@
 3. [Análisis de Normalización 3NF](#análisis-de-normalización-3nf)
 4. [Decisiones de Diseño](#decisiones-de-diseño)
 5. [Relaciones y Restricciones](#relaciones-y-restricciones)
-6. [Diagrama Entidad-Relación](#diagrama-entidad-relación)
+6. [Conclusión](#conclusión)
 
 ---
 
@@ -20,7 +20,7 @@ La base de datos **Temuzon** es un sistema de gestión de e-commerce diseñado p
 - Procesamiento de pedidos y líneas de pedido
 - Sistema de pagos y seguimiento de transacciones
 - Reseñas y evaluaciones de productos
-- Información geográfica (países) con cálculo de IVA
+- Información geográfica de países con cálculo de IVA
 
 El diseño sigue principios de **normalización relacional de tercera forma normal (3NF)** para garantizar:
 - Integridad referencial
@@ -31,174 +31,152 @@ El diseño sigue principios de **normalización relacional de tercera forma norm
 
 ## Modelo de Datos
 
-### Tablas del Sistema
+### Tablas del sistema
 
-#### 1. **Paises** (Tabla Referencial)
-```
-Propósito: Almacenar información de países y su régimen fiscal
-```
+#### 1. `Paises`
+Tabla maestra que centraliza la información fiscal y geográfica de cada país.
+
 | Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `IdPais` | INT | Identificador único (PK) |
+|---|---:|---|
+| `IdPais` | INT | Identificador único de país, clave primaria |
 | `Nombre` | STRING | Nombre del país |
-| `Continente` | STRING | Continente al que pertenece |
-| `IVA` | INT | Porcentaje de IVA aplicable en ese país |
+| `IVA` | INT | Porcentaje de impuesto aplicado en ese país |
 
-**Función en el sistema:**
-- Tabla maestro/referencial que proporciona información geográfica y fiscal
-- Utilizada por `Clientes` (país de residencia) y `Pedidos` (país de envío)
-- Facilita el cálculo automático de impuestos según destino
+**Observación de diseño**
+- Utilizada por Clientes (país de residencia) y Pedidos (país de envío)
+- Esta tabla se utiliza como referencia fiscal tanto para clientes como para pedidos.
 
----
+#### 2. `Categoria_Productos`
+Clasifica el catálogo de productos.
 
-#### 2. **Categoria_Productos** (Tabla Referencial)
-```
-Propósito: Clasificación jerárquica de productos
-```
 | Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `IdCategoria` | INT | Identificador único (PK) |
-| `Nombre` | STRING | Nombre de la categoría |
-| `Descripción` | TEXT | Descripción detallada de la categoría |
+|---|---:|---|
+| `IdCategoria` | INT | Identificador único de categoría, clave primaria |
+| `Nombre` | STRING | Nombre visible de la categoría |
+| `Descripción` | TEXT | Descripción ampliada |
 
-**Función en el sistema:**
+**Observación de diseño**
 - Tabla maestro que define categorías de productos
 - Permite organizar el catálogo de forma jerárquica
 - Facilita búsquedas y filtros en el e-commerce
+- La categoría queda separada de producto para evitar duplicación de información.
 
----
+#### 3. `Productos`
+Representa el inventario vendible.
 
-#### 3. **Productos** (Tabla Principal)
-```
-Propósito: Catálogo de productos disponibles
-```
 | Campo | Tipo | Relación | Descripción |
-|-------|------|----------|-------------|
-| `IdProducto` | INT | PK | Identificador único del producto |
-| `IdCategoria` | INT | FK → Categoria_Productos | Categoría a la que pertenece |
-| `Nombre` | STRING | | Nombre del producto |
-| `Precio de venta` | INT | | Precio de venta al público |
-| `Coste` | INT | | Costo de adquisición |
-| `Stock` | INT | | Cantidad disponible en inventario |
-| `Estado` | STRING | | Estado del producto (activo, descontinuado, etc.) |
+|---|---:|---|---|
+| `IdProducto` | INT | PK | Identificador del producto |
+| `IdCategoria` | INT | FK → `Categoria_Productos.IdCategoria` | Categoría asociada |
+| `Nombre` | STRING |  | Nombre del producto |
+| `Precio de venta` | FLOAT |  | Precio de venta actual |
+| `Coste` | FLOAT |  | Coste interno o de adquisición |
+| `Stock` | INT |  | Unidades disponibles |
+| `Estado` | STRING |  | Estado funcional del producto |
 
-**Decisión de diseño:**
-- Los precios se almacenan como `INT` en lugar de `DECIMAL` para evitar problemas de precisión flotante
+**Observación de diseño**
+- Los importes pasan a `FLOAT` en el esquema actual, lo que permite decimales.
 - El `Stock` se actualiza en transacciones de pedidos
 - El `Estado` permite gestionar ciclo de vida de productos
 
----
+#### 4. `Clientes`
+Contiene la información de los clientes del sistema.
 
-#### 4. **Clientes** (Tabla Principal)
-```
-Propósito: Información de clientes del e-commerce
-```
 | Campo | Tipo | Relación | Descripción |
-|-------|------|----------|-------------|
-| `IdCliente` | INT | PK | Identificador único |
-| `Nombre` | STRING | | Nombre del cliente |
-| `Apellidos` | STRING | | Apellidos del cliente |
-| `Dirección` | STRING | | Dirección de residencia |
-| `Codigo Postal` | INT | | Código postal |
-| `Ciudad` | STRING | | Ciudad |
-| `País` | INT | FK → Paises | País de residencia |
-| `Nº Identificacion` | STRING | | Documento de identidad |
-| `Email` | STRING | | Correo electrónico |
-| `Telefono` | STRING | | Número de teléfono |
-| `Canal de adquisición` | STRING | | Cómo conoció de Temuzon (SEO, publicidad, referencia, etc.) |
+|---|---:|---|---|
+| `IdCliente` | INT | PK | Identificador único del cliente |
+| `Nombre` | STRING |  | Nombre |
+| `Apellidos` | STRING |  | Apellidos |
+| `Dirección` | STRING |  | Dirección postal |
+| `Codigo Postal` | INT |  | Código postal |
+| `Ciudad` | STRING |  | Ciudad |
+| `País` | INT | FK → `Paises.IdPais` | País de residencia |
+| `Nº Identificacion` | STRING |  | Documento de identidad |
+| `Email` | STRING |  | Correo electrónico |
+| `Telefono` | STRING |  | Teléfono |
+| `Canal de adquisición` | STRING |  | Origen de captación del cliente |
 
-**Decisión de diseño:**
-- Separación de `Nombre` y `Apellidos` para facilitar búsquedas y reportes
-- `Nº Identificacion` como STRING para soportar diferentes formatos (DNI, pasaporte, etc.)
+**Observación de diseño**
+- Separación de Nombre y Apellidos para facilitar búsquedas y reportes
 - Dirección completa en un solo campo para simplificar, aunque podría normalizarse más si fuera necesario
-- `Canal de adquisición` como enumeración de marketing para análisis
+- `Nº Identificacion` como STRING para soportar diferentes formatos (DNI, pasaporte, etc.)
+- Canal de adquisición como enumeración de marketing para análisis
 
----
 
-#### 5. **Pedidos** (Tabla Principal - Transaccional)
-```
-Propósito: Registro de órdenes de compra
-```
+#### 5. `Pedidos`
+Registra las órdenes de compra.
+
 | Campo | Tipo | Relación | Descripción |
-|-------|------|----------|-------------|
-| `IdPedido` | INT | PK | Identificador único del pedido |
-| `IdCliente` | STRING | FK → Clientes | Cliente que realiza la compra |
-| `Estado pedido` | STRING | | Estado (pendiente, procesado, enviado, entregado, cancelado) |
-| `Cantidad` | INT | | Cantidad total de artículos |
-| `Dirección de envío` | STRING | | Dirección de entrega (puede diferir de residencia) |
-| `Codigo Postal` | INT | | Código postal de envío |
-| `Ciudad de envío` | STRING | | Ciudad de entrega |
-| `País de envío` | INT | FK → Paises | País destino (para cálculo de IVA/aduanas) |
-| `Método de envío` | STRING | | Tipo de envío (express, estándar, etc.) |
-| `Fecha de envío` | DATETIME | | Cuándo se envió |
-| `Fecha de reparto` | DATETIME | | Cuándo fue entregado |
-| `Notas` | STRING | | Notas especiales del pedido |
+|---|---:|---|---|
+| `IdPedido` | INT | PK | Identificador del pedido |
+| `IdCliente` | INT | FK → `Clientes.IdCliente` | Cliente que realiza la compra |
+| `Estado pedido` | STRING |  | Estado del pedido |
+| `Dirección de envío` | STRING |  | Dirección de entrega |
+| `Codigo Postal` | INT |  | Código postal de envío |
+| `Ciudad de envío` | STRING |  | Ciudad de entrega |
+| `País de envío` | INT | FK → `Paises.IdPais` | País destino |
+| `Método de envío` | STRING |  | Método logístico |
+| `Fecha de envío` | DATETIME |  | Fecha real de envío |
+| `Fecha de reparto` | DATETIME |  | Fecha de entrega |
+| `Notas` | STRING |  | Observaciones adicionales |
 
-**Decisión de diseño:**
-- Dirección de envío duplicada (desnormalización controlada) para mantener historial de entregas
-- `País de envío` separado del cliente para auditoría de envíos internacionales
+**Observación de diseño**
+- El sistema conserva la dirección de envío como parte del pedido para mantener el histórico exacto del momento de la compra.
+- El `País de envío` se separa del país del cliente porque un cliente puede residir en un país y recibir el pedido en otro.
 - Timestamps para tracking de envíos
-- `Cantidad` se usa para estadísticas rápidas sin recalcular desde `Linea_Pedidos`
 
----
+#### 6. `Linea_Pedidos`
+Detalle de cada producto incluido en un pedido.
 
-#### 6. **Linea_Pedidos** (Tabla de Detalles - Normalización)
-```
-Propósito: Desglose de artículos en cada pedido
-```
 | Campo | Tipo | Relación | Descripción |
-|-------|------|----------|-------------|
-| `IdOrdenPedido` | INT | PK | Identificador único de la línea |
-| `IdPedido` | INT | FK → Pedidos | Pedido al que pertenece |
-| `IDProducto` | INT | FK → Productos | Producto vendido |
-| `Cantidad` | INT | | Unidades vendidas |
-| `Precio Unidad` | INT | | Precio unitario en el momento de la venta |
-| `Porcentaje descuento` | INT | | Descuento aplicado (0-100%) |
-| `Subtotal` | INT | | Cantidad × Precio × (1 - Descuento%) |
+|---|---:|---|---|
+| `IdOrdenPedido` | INT | PK | Identificador de la línea |
+| `IdPedido` | INT | FK → `Pedidos.IdPedido` | Pedido al que pertenece |
+| `IdProducto` | INT | FK → `Productos.IdProducto` | Producto vendido |
+| `Cantidad` | INT |  | Unidades vendidas |
+| `Precio Unidad` | FLOAT |  | Precio unitario en el momento de la venta |
+| `Porcentaje descuento` | FLOAT |  | Descuento aplicado |
+| `Subtotal` | INT |  | Total calculado de la línea |
 
-**Decisión de diseño:**
-- Tabla de detalles separada para mantener normalización 1NF
-- `Precio Unidad` es copia del precio en el momento de venta (desnormalización intencional) para auditoría
-- `Subtotal` se precalcula y almacena para queries rápidas
-- Composite Key podría ser (IdPedido, IDProducto) pero se usa un PK simple para flexibilidad
+**Observación de diseño**
+- La tabla separa la relación N:M entre pedidos y productos.
+- `Precio Unidad` y `Porcentaje descuento` usan `FLOAT` para conservar decimales.
+- `Subtotal` se almacena para facilitar consultas y reportes sin recalcular constantemente.
+- La decisión de guardar el precio en la línea preserva el valor histórico aunque el precio del producto cambie después.
+- Se podria usar Clave compuesta (IdPedido, IdProdcto) pero se mantiene una clave principal para tener mayor flexibilidad.
 
----
+#### 7. `Pagos`
+Gestiona las transacciones de cobro y reembolso.
 
-#### 7. **Pagos** (Tabla Transaccional)
-```
-Propósito: Registro de transacciones de pago
-```
 | Campo | Tipo | Relación | Descripción |
-|-------|------|----------|-------------|
-| `IdPago` | INT | PK | Identificador único del pago |
-| `IdPedido` | INT | FK → Pedidos | Pedido asociado |
-| `Cantidad` | INT | | Monto pagado |
-| `Metodo de pago` | STRING | | Método (tarjeta, transferencia, PayPal, etc.) |
-| `Estado` | STRING | | Estado (pendiente, completado, fallido, reembolsado) |
-| `Fecha de cobro` | DATETIME | | Fecha de transacción exitosa |
-| `Fecha de reembolso` | DATETIME | | Fecha del reembolso si aplica |
+|---|---:|---|---|
+| `IdPago` | INT | PK | Identificador del pago |
+| `IdPedido` | INT | FK → `Pedidos.IdPedido` | Pedido asociado |
+| `Cantidad` | INT |  | Importe pagado |
+| `Metodo de pago` | STRING |  | Medio de pago |
+| `Estado` | STRING |  | Estado de la transacción |
+| `Fecha de cobro` | DATETIME |  | Fecha de cobro |
+| `Fecha de reembolso` | DATETIME |  | Fecha de devolución |
 
-**Decisión de diseño:**
+**Observación de diseño**
 - Tabla separada de `Pedidos` para rastrear múltiples intentos de pago
-- `Estado` y fechas permiten auditoría de transacciones
-- Soporta reembolsos parciales mediante cantidad
+- `Estado `y fechas permiten auditoría de transacciones
+- La entidad de pagos queda separada del pedido para soportar estados de cobro y reembolso con trazabilidad.
+- El campo `Cantidad` representa el importe transaccionado.
 
----
+#### 8. `Reseñas`
+Sistema de opinión de los clientes.
 
-#### 8. **Reseñas** (Tabla de Opiniones)
-```
-Propósito: Sistema de evaluaciones y comentarios de clientes
-```
 | Campo | Tipo | Relación | Descripción |
-|-------|------|----------|-------------|
-| `IdReseña` | INT | PK | Identificador único |
-| `IdOrdenPedido` | INT | FK → Linea_Pedidos | Línea de pedido reseñada |
-| `IdCliente` | INT | FK → Clientes | Cliente que hace la reseña |
-| `Valoración` | INT | | Puntuación (1-5 estrellas) |
-| `Comentario` | TEXT | | Texto de la reseña |
+|---|---:|---|---|
+| `IdReseña` | INT | PK | Identificador de la reseña |
+| `IdOrdenPedido` | INT | FK → `Linea_Pedidos.IdOrdenPedido` | Línea de pedido reseñada |
+| `IdCliente` | INT | FK → `Clientes.IdCliente` | Cliente autor de la reseña |
+| `Valoración` | INT |  | Puntuación |
+| `Comentario` | TEXT |  | Texto libre |
 
-**Decisión de diseño:**
-- Relación a `Linea_Pedidos` en lugar de `Productos` para garantizar que solo se reseñan compras reales
+**Observación de diseño**
+- Relación a Linea_Pedidos en lugar de Productos para garantizar que solo se reseñan compras reales
 - Validación de integridad: cliente debe ser el que compró el producto
 - Permite reseñas múltiples del mismo producto por diferentes clientes
 
@@ -206,352 +184,89 @@ Propósito: Sistema de evaluaciones y comentarios de clientes
 
 ## Análisis de Normalización 3NF
 
-### Primera Forma Normal (1NF)
-**Requisito:** Todos los atributos contienen solo valores atómicos (no multivaluados)
+### 1NF
+La primera forma normal exige que cada atributo sea atómico.
 
-✅ **Cumplida en todas las tablas:**
-- Cada atributo contiene un único valor
-- No hay conjuntos o listas dentro de campos
-- Ejemplo: `Clientes.Nombre` es un string único, no un array
+**Cumplimiento**
+- Cada campo almacena un único valor lógico.
+- No hay listas, conjuntos ni grupos repetidos dentro de una misma columna.
+- La separación entre `Pedidos` y `Linea_Pedidos` evita repetir productos dentro del pedido en un solo registro.
 
-### Segunda Forma Normal (2NF)
-**Requisito:** Está en 1NF AND todo atributo no-clave depende funcionalmente de la **clave primaria completa**
+### 2NF
+La segunda forma normal exige que todo atributo no clave dependa de la clave completa.
 
-✅ **Cumplida:**
-- `Productos`: IDProducto → IdCategoria, Nombre, Precio (dependencia completa)
-- `Clientes`: IdCliente → Nombre, Email, Teléfono (dependencia completa)
-- `Linea_Pedidos`: (IdPedido, IdProducto) → Cantidad, Precio (dependencia de la clave completa)
+**Cumplimiento**
+- `Productos`: los atributos dependen de `IdProducto`.
+- `Clientes`: los atributos dependen de `IdCliente`.
+- `Pedidos`: los atributos dependen de `IdPedido`.
+- `Linea_Pedidos`: cada dato depende de la línea, no de un atributo parcial de una clave compuesta.
 
-**Aplicación:**
-- No hay atributos que dependan solo de parte de la clave primaria
-- Categoría está en tabla separada, no duplicada en cada producto
+### 3NF
+La tercera forma normal exige que no existan dependencias transitivas entre atributos no clave.
 
-### Tercera Forma Normal (3NF)
-**Requisito:** Está en 2NF AND ningún atributo no-clave depende de otro atributo no-clave (eliminación de dependencias transitivas)
+**Cumplimiento general**
+- `Paises` depende solo de `IdPais`.
+- `Categoria_Productos` depende solo de `IdCategoria`.
+- `Productos` depende solo de `IdProducto`.
+- `Pagos` depende solo de `IdPago`.
+- `Reseñas` depende solo de `IdReseña`.
 
-✅ **Cumplida con análisis detallado:**
+**Puntos a vigilar**
+- `Clientes` conserva dirección, ciudad, código postal y país en la misma entidad porque, para este proyecto, la dirección se trata como un bloque operativo y no como un catálogo de direcciones independiente.
+- `Pedidos` guarda la dirección de envío completa por motivos de histórico y auditoría.
+- `Linea_Pedidos` duplica el precio unitario por motivo histórico, aunque eso implique una desnormalización controlada.
 
-| Tabla | Verificación 3NF |
-|-------|------------------|
-| **Paises** | ✅ Solo atributos descriptivos que dependen de IdPais |
-| **Categoria_Productos** | ✅ Nombre y Descripción dependen solo de IdCategoria |
-| **Productos** | ✅ Todos los atributos dependen solo de IdProducto |
-| **Clientes** | ✅ ⚠️ Dirección + Ciudad + CP + País podría normalizarse más (ver nota) |
-| **Pedidos** | ✅ ⚠️ Cantidad y Dirección de envío se desnormalizan intencionalmente (ver decisión) |
-| **Linea_Pedidos** | ✅ Todos dependen de IdOrdenPedido |
-| **Pagos** | ✅ Todos dependen de IdPago |
-| **Reseñas** | ✅ Todos dependen de IdReseña |
+### Excepciones justificadas
 
-#### Análisis de Excepciones Justificadas
+#### `Clientes.País`
+- Está relacionado con `Paises`, porque el país es un dato fiscal y no una simple etiqueta textual.
 
-**1. Desnormalización en `Clientes.País`**
-```
-DECISIÓN: Se mantiene el País como FK en lugar de derivar de Dirección
-RAZÓN: 
-- País es información crítica para cumplimiento fiscal
-- Evita queries complejas cada vez que se necesita el IVA
-- Rendimiento: O(1) en lugar de parsear dirección
-- Integridad: La FK garantiza que el país existe en la tabla Paises
-```
+#### `Pedidos.Dirección de envío`
+- Se almacena para conservar el estado exacto del pedido en el momento de compra.
+- Si el cliente cambia su dirección después, el histórico del pedido no se pierde.
 
-**2. Desnormalización en `Pedidos`**
-```
-DECISIÓN: Se almacena Cantidad + Dirección de envío en Pedidos
-RAZÓN:
-- AUDITORÍA: Mantiene historial exacto de cómo se envió
-- Si se cambian direcciones, seguimos teniendo el histórico
-- Cantidad permite dashboards rápidos sin JOIN a Linea_Pedidos
-- NORMALIZACIÓN TEÓRICA: Podría removerse, pero el costo supera beneficios
-```
-
-**3. Copia de `Precio Unidad` en `Linea_Pedidos`**
-```
-DECISIÓN: Se duplica el precio del producto en la línea de pedido
-RAZÓN:
-- AUDITORÍA HISTÓRICA: Si cambia el precio del producto, mantenemos qué pagó
-- CÁLCULOS RÁPIDOS: Subtotal sin necesar traer histórico de precios
-- NORMALIZACIÓN: Viola 3NF técnicamente, pero es necesario para auditoría
-```
-
-**4. Dirección completa en campo único en `Clientes` y `Pedidos`**
-```
-DECISIÓN: Dirección + Ciudad + CP en campos separados (sin tabla Direcciones)
-RAZÓN:
-- En versiones futuras podría haber tabla Direcciones normalizada
-- Por ahora, el overhead de otra tabla no justifica el beneficio
-- Las direcciones se modifican raramente
-- 3NF: Se cumple porque no hay dependencia cíclica
-```
+#### `Linea_Pedidos.Precio Unidad`
+- Se almacena para congelar el precio aplicado en la venta.
+- Si el precio del producto cambia más adelante, no se alteran las líneas antiguas.
 
 ---
 
 ## Decisiones de Diseño
 
-### 1. **Tipos de Datos**
+### Tipos numéricos
+- Los precios y descuentos se han documentado como `FLOAT` porque así aparece el esquema modificado.
+- Para importes contables críticos, `DECIMAL` sería más seguro, pero el documento debe reflejar el modelo actual.
+- `Stock` y cantidades se mantienen como `INT` porque representan unidades completas.
 
-#### Precios como INT en lugar de DECIMAL
-```sql
-Precio_de_venta INT  -- representa centavos (100 = 1.00€)
-NO: Precio_de_venta DECIMAL(10,2)
-```
-**Razones:**
-- Evita problemas de precisión flotante en cálculos
-- Más rápido en operaciones matemáticas
-- Estándar en sistemas financieros (almacenar en centavos/céntimos)
-- Facilita auditoría exacta
+### Identificadores y relaciones
+- Los identificadores se centralizan en tablas maestras como `Paises` y `Categoria_Productos`.
+- `Linea_Pedidos` actúa como tabla de detalle y resuelve la relación N:M entre pedidos y productos.
+- `Pedidos` se desacopla de la dirección de residencia del cliente porque un pedido puede enviarse a otro destino.
 
-#### Identificadores como STRING donde es necesario
-```sql
-Nº Identificacion STRING  -- soporta DNI, Pasaporte, etc.
-```
-**Razones:**
-- Flexibilidad internacional
-- Algunos países usan letras en documentos
-
-### 2. **Relaciones Clave**
-
-#### Relación Múltiple: Pedido → País (Cliente ≠ Envío)
-```
-Clientes.País ─────┐
-                    ├─→ Determina zona fiscal
-Pedidos.País ───────┤
-                    └─→ Cálculo de impuestos, aduanas
-```
-**Razones:**
-- Soporte para envíos internacionales
-- Cliente en España, envío a Portugal ≠ mismo IVA
-- Auditoría de cumplimiento aduanal
-
-#### Linea_Pedidos como tabla de asociación
-```
-Pedidos ──┬─→ Linea_Pedidos ─┬─→ Productos
-          └─→ (N:N mapping) ─┘
-```
-**Razones:**
-- Un pedido tiene N productos
-- Un producto en N pedidos
-- Permite historial de precios
-
-### 3. **Estrategia de Auditoría**
-
-| Elemento | Estrategia | Ubicación |
-|----------|-----------|-----------|
-| **Precios históricos** | Copiar en Linea_Pedidos | Inmodificable |
-| **Dirección de envío** | Copiar en Pedidos | Auditada con FK a Paises |
-| **Cambios de estado** | Campos timestamp | Fecha_envio, Fecha_reparto |
-| **Reembolsos** | Campo separado | Pagos.Fecha_reembolso |
-
-### 4. **Integridad Referencial**
-
-**Restricciones FK implementadas:**
-```
-Productos.IdCategoria → Categoria_Productos(IdCategoria) [NO DELETE CASCADE]
-Clientes.País → Paises(IdPais) [NO DELETE CASCADE]
-Pedidos.IdCliente → Clientes(IdCliente) [NO DELETE CASCADE]
-Pedidos.País de envío → Paises(IdPais) [NO DELETE CASCADE]
-Linea_Pedidos.IdPedido → Pedidos(IdPedido) [DELETE CASCADE]
-Linea_Pedidos.IdProducto → Productos(IdProducto) [NO DELETE CASCADE]
-Pagos.IdPedido → Pedidos(IdPedido) [DELETE CASCADE]
-Reseñas.IdCliente → Clientes(IdCliente) [NO DELETE CASCADE]
-Reseñas.IdOrdenPedido → Linea_Pedidos(IdOrdenPedido) [NO DELETE CASCADE]
-```
+### Auditoría y trazabilidad
+- `Linea_Pedidos` conserva el precio histórico de la compra.
+- `Pagos` separa cobro y reembolso para tener trazabilidad completa.
+- `Reseñas` se ancla a una línea comprada para evitar opiniones de productos no adquiridos.
 
 ---
 
 ## Relaciones y Restricciones
 
-### Diagrama de Relaciones
+### Relaciones principales
+- `Categoria_Productos.IdCategoria` → `Productos.IdCategoria`
+- `Paises.IdPais` → `Clientes.País`
+- `Paises.IdPais` → `Pedidos.País de envío`
+- `Clientes.IdCliente` → `Pedidos.IdCliente`
+- `Pedidos.IdPedido` → `Linea_Pedidos.IdPedido`
+- `Productos.IdProducto` → `Linea_Pedidos.IDProducto`
+- `Pedidos.IdPedido` → `Pagos.IdPedido`
+- `Clientes.IdCliente` → `Reseñas.IdCliente`
+- `Linea_Pedidos.IdOrdenPedido` → `Reseñas.IdOrdenPedido`
 
-```
-                    ┌─────────────────┐
-                    │   Paises        │
-                    │ ─────────────── │
-                    │ ⬤ IdPais (PK)   │
-                    │   Nombre        │
-                    │   Continente    │
-                    │   IVA           │
-                    └─────────────────┘
-                           ▲
-                  ┌────────┴────────┐
-                  │                 │
-           (1:N)  │                 │ (1:N)
-          ┌───────┴────────┐        └──────────────┐
-          │  Clientes      │              ┌────────┴──────────┐
-          │ ────────────── │              │ Pedidos           │
-          │ ⬤ IdCliente    │              │ ──────────────────│
-          │   Nombre       │              │ ⬤ IdPedido (PK)   │
-          │   Email        │              │   IdCliente (FK)  │
-          │   País (FK) ◄──┤──────────────┤   País envío (FK) │
-          │   ...          │              │   Estado pedido   │
-          └────────────────┘              │   Cantidad        │
-                                          │   Dirección envío │
-                                          │   ...             │
-                                          └──────┬─────────────┘
-                                                 │
-                                    ┌────────────┼────────────┐
-                                    │            │            │
-                            (1:N)   │            │            │ (1:N)
-                          ┌─────────┴─────┐      │      ┌──────┴───────┐
-                          │ Linea_Pedidos │      │      │ Pagos        │
-                          │ ──────────────│      │      │ ──────────── │
-                          │ ⬤ IdOrden (PK)│      │      │ ⬤ IdPago     │
-                          │   IdPedido (FK)      │      │   IdPedido(FK)
-                          │   IdProducto (FK)    │      │   Cantidad   │
-                          │   Cantidad      ◄────┘      │   Método pago│
-                          │   Precio Unidad      │      │   Estado     │
-                          │   % Descuento        │      │   Fecha_cobro
-                          │   Subtotal           │      │   ...        │
-                          └──────────────────────┤      └──────────────┘
-                                                 │
-                                  ┌──────────────┴──────────────┐
-                                  │                             │
-                      (1:N)        │                             │
-                    ┌──────────────┴─────────┐                 │
-                    │ Categoria_Productos    │                 │
-                    │ ──────────────────────  │                 │
-                    │ ⬇ ⬇ ⬇ ⬇ ⬇ ⬇         │                 │
-                    │ ⬇ ⬇ ⬇ ⬇ ⬇ ⬇         │                 │
-                    │ IdCategoria (PK)       │                 │
-                    │ Nombre                 │                 │
-                    │ Descripción            │                 │
-                    └────────────────────────┘                 │
-                           ▲                                    │
-                 (1:N)      │                                   │
-                    ┌───────┴────────┐                         │
-                    │ Productos      │                         │
-                    │ ──────────────  │                         │
-                    │ ⬇ ⬇ ⬇ ⬇ ⬇ ⬇ │                         │
-                    │ ⬇ ⬇ ⬇ ⬇ ⬇ ⬇ │                         │
-                    │ IdProducto (FK)                          │
-                    │ IdCategoria (FK) ◄───────┐               │
-                    │ Nombre                    │               │
-                    │ Precio de venta  ◄────────┼───────────────┼─→ Reseñas
-                    │ Coste                     │               │  ──────────
-                    │ Stock                     │               │  IdReseña
-                    │ Estado                    │               │  IdOrden(FK)
-                    └────────────────────────────┘               │  IdCliente(FK)
-                                 ▲                               │  Valoración
-                           (1:N) │                               │  Comentario
-                                 │                               │
-                                 └───────────────────────────────┘
-```
+### Reglas de integridad
+1. No puede existir un pedido sin cliente.
+2. No puede existir una línea de pedido sin pedido ni producto.
+3. No puede existir un pago sin pedido.
+4. No puede existir una reseña sin cliente y sin línea de compra real.
+5. No deben existir países referenciados por clientes o pedidos si todavía hay registros dependientes.
 
-### Reglas de Integridad Críticas
-
-1. **No puede existir pedido sin cliente**
-   ```sql
-   Pedidos.IdCliente NOT NULL
-   Pedidos.IdCliente FK → Clientes
-   ```
-
-2. **Línea de pedido requiere producto y pedido**
-   ```sql
-   Linea_Pedidos.IdPedido NOT NULL FK → Pedidos
-   Linea_Pedidos.IdProducto NOT NULL FK → Productos
-   ```
-
-3. **Pago requiere pedido**
-   ```sql
-   Pagos.IdPedido NOT NULL FK → Pedidos
-   ```
-
-4. **Reseña requiere cliente y compra real**
-   ```sql
-   Reseñas.IdCliente NOT NULL FK → Clientes
-   Reseñas.IdOrdenPedido NOT NULL FK → Linea_Pedidos
-   ```
-
-5. **Cascada de borrados**
-   ```
-   DELETE Pedidos → DELETE Linea_Pedidos (CASCADE)
-   DELETE Pedidos → DELETE Pagos (CASCADE)
-   DELETE Linea_Pedidos → DELETE Reseñas (CASCADE)
-   
-   PERO:
-   DELETE Clientes → ❌ ERROR (hay pedidos referenciados)
-   DELETE Productos → ❌ ERROR (hay referencias)
-   DELETE Paises → ❌ ERROR (hay clientes/pedidos)
-   ```
-
----
-
-## Diagrama Entidad-Relación
-
-```
-Leyenda:
-PK = Primary Key (Clave Primaria)
-FK = Foreign Key (Clave Foránea)
-⬇ = Múltiples registros
-```
-
-### Resumen de Tablas
-
-| Tabla | Registros | Propósito | Normalización |
-|-------|-----------|----------|---------------|
-| **Paises** | 195 aprox | Catálogo maestro | ✅ 3NF |
-| **Categoria_Productos** | 10-50 aprox | Catálogo maestro | ✅ 3NF |
-| **Productos** | 1K-10K | Inventario | ✅ 3NF |
-| **Clientes** | Creciente | Datos cliente | ✅ 3NF |
-| **Pedidos** | Creciente | Transacciones | ✅ 3NF (con desnormalización justificada) |
-| **Linea_Pedidos** | N × Pedidos | Detalles | ✅ 3NF |
-| **Pagos** | ≥ Pedidos | Auditoría transacciones | ✅ 3NF |
-| **Reseñas** | Creciente | Opinions/Feedback | ✅ 3NF |
-
-### Complejidad de Relaciones
-
-- **Tablas maestro (0 FK):** Paises, Categoria_Productos
-- **Tablas referencial (1-2 FK):** Productos, Clientes, Reseñas
-- **Tablas transaccionales (2-3 FK):** Pedidos, Linea_Pedidos, Pagos
-- **Tabla de asociación (2 FK):** Linea_Pedidos
-
----
-
-## Consideraciones Futuras
-
-### Posibles Mejoras para Escala
-
-1. **Desnormalización de direcciones:**
-   ```
-   CREATE TABLE Direcciones (
-     IdDireccion INT PK,
-     Calle STRING,
-     Numero INT,
-     Piso STRING,
-     CodigoPostal INT,
-     Ciudad STRING,
-     IdPais INT FK
-   )
-   ```
-
-2. **Historial de cambios:**
-   ```
-   CREATE TABLE Cambios_Productos (
-     IdCambio INT PK,
-     IdProducto INT FK,
-     Precio_anterior INT,
-     Precio_nuevo INT,
-     Fecha DATETIME
-   )
-   ```
-
-3. **Tablas de dimensiones para analytics:**
-   ```
-   Dim_Tiempo, Dim_Metodo_Envio, Dim_Metodo_Pago
-   para facilitar análisis OLAP
-   ```
-
----
-
-## Conclusión
-
-La base de datos **Temuzon** cumple con **normalización 3NF** manteniendo:
-- ✅ Integridad referencial mediante foreign keys
-- ✅ Eliminación de redundancia innecesaria
-- ✅ Flexibilidad para consultas comunes
-- ⚠️ Desnormalización controlada en puntos críticos de auditoría y rendimiento
-
-Las decisiones de diseño priorizan:
-1. **Auditoría y cumplimiento:** Historial de precios, direcciones, transacciones
-2. **Rendimiento:** Subtotales precalculados, País en Pedidos para rápido cálculo de IVA
-3. **Escalabilidad:** Tablas maestro separadas, sin dependencias cíclicas
-4. **Integridad:** Foreign keys no nulas donde sea crítico, cascadas de borrado inteligentes
