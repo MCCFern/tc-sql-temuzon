@@ -8,8 +8,6 @@
 3. [Análisis de Normalización 3NF](#análisis-de-normalización-3nf)
 4. [Decisiones de Diseño](#decisiones-de-diseño)
 5. [Relaciones y Restricciones](#relaciones-y-restricciones)
-6. [Conclusión](#conclusión)
-
 ---
 
 ## Visión General
@@ -102,15 +100,136 @@ Contiene la información de los clientes del sistema.
 - `Nº Identificacion` como STRING para soportar diferentes formatos (DNI, pasaporte, etc.)
 - Canal de adquisición como enumeración de marketing para análisis
 
+# Análisis de Normalización 3NF - Temuzon Database
 
-#### 5. `Pedidos`
+![Temuzon Logo](./Temuzon.png)
+
+## Índice
+1. [Visión General](#visión-general)
+2. [Modelo de Datos](#modelo-de-datos)
+3. [Análisis de Normalización 3NF](#análisis-de-normalización-3nf)
+4. [Decisiones de Diseño](#decisiones-de-diseño)
+5. [Relaciones y Restricciones](#relaciones-y-restricciones)
+6. [Conclusión](#conclusión)
+
+---
+
+<details>
+<summary><strong>Visión General</strong></summary>
+
+La base de datos **Temuzon** es un sistema de gestión de e-commerce diseñado para administrar:
+- Catálogo de productos organizados por categorías
+- Gestión de clientes e información de contacto
+- Procesamiento de pedidos y líneas de pedido
+- Sistema de pagos y seguimiento de transacciones
+- Reseñas y evaluaciones de productos
+- Información geográfica de países con cálculo de IVA
+
+El diseño sigue principios de **normalización relacional de tercera forma normal (3NF)** para garantizar:
+- Integridad referencial
+- Eliminación de redundancia de datos
+- Facilidad de mantenimiento y actualización
+
+</details>
+
+---
+
+## Modelo de Datos
+
+### Tablas del sistema
+
+<details>
+<summary><strong>1. `Paises`</strong></summary>
+
+Tabla maestra que centraliza la información fiscal y geográfica de cada país.
+
+| Campo | Tipo | Descripción |
+|---|---:|---|
+| `IdPais` | INT | Identificador único de país, clave primaria |
+| `Nombre` | STRING | Nombre del país |
+| `IVA` | INT | Porcentaje de impuesto aplicado en ese país |
+
+**Observación de diseño**
+- Se eliminó el campo `Continente` porque no aporta valor funcional directo al modelo transaccional.
+- Esta tabla se utiliza como referencia fiscal tanto para clientes como para pedidos.
+
+</details>
+
+<details>
+<summary><strong>2. `Categoria_Productos`</strong></summary>
+
+Clasifica el catálogo de productos.
+
+| Campo | Tipo | Descripción |
+|---|---:|---|
+| `IdCategoria` | INT | Identificador único de categoría, clave primaria |
+| `Nombre` | STRING | Nombre visible de la categoría |
+| `Descripción` | TEXT | Descripción ampliada |
+
+**Observación de diseño**
+- La categoría queda separada de producto para evitar duplicación de información.
+- La descripción larga se mantiene en `TEXT` porque no requiere operaciones aritméticas ni búsquedas exactas frecuentes.
+
+</details>
+
+<details>
+<summary><strong>3. `Productos`</strong></summary>
+
+Representa el inventario vendible.
+
+| Campo | Tipo | Relación | Descripción |
+|---|---:|---|---|
+| `IdProducto` | INT | PK | Identificador del producto |
+| `IdCategoria` | INT | FK → `Categoria_Productos.IdCategoria` | Categoría asociada |
+| `Nombre` | STRING |  | Nombre del producto |
+| `Precio de venta` | FLOAT |  | Precio de venta actual |
+| `Coste` | FLOAT |  | Coste interno o de adquisición |
+| `Stock` | INT |  | Unidades disponibles |
+| `Estado` | STRING |  | Estado funcional del producto |
+
+**Observación de diseño**
+- Los importes pasan a `FLOAT` en el esquema actual, lo que permite decimales.
+- Si el modelo se usara para facturación estricta, `DECIMAL` sería una opción más robusta, pero aquí se documenta el esquema real exportado.
+
+</details>
+
+<details>
+<summary><strong>4. `Clientes`</strong></summary>
+
+Contiene la información de los clientes del sistema.
+
+| Campo | Tipo | Relación | Descripción |
+|---|---:|---|---|
+| `IdCliente` | INT | PK | Identificador único del cliente |
+| `Nombre` | STRING |  | Nombre |
+| `Apellidos` | STRING |  | Apellidos |
+| `Dirección` | STRING |  | Dirección postal |
+| `Codigo Postal` | INT |  | Código postal |
+| `Ciudad` | STRING |  | Ciudad |
+| `País` | STRING | FK → `Paises.IdPais` | País de residencia |
+| `Nº Identificacion` | STRING |  | Documento de identidad |
+| `Email` | STRING |  | Correo electrónico |
+| `Telefono` | STRING |  | Teléfono |
+| `Canal de adquisición` | STRING |  | Origen de captación del cliente |
+
+**Observación de diseño**
+- El campo `País` se documenta como `STRING` porque así aparece en la exportación, pero lógicamente actúa como una FK a `Paises.IdPais`.
+- En una versión final convendría alinear el tipo físico con la PK referenciada para evitar inconsistencias de implementación.
+- `Nº Identificacion` permanece como texto porque puede incluir formatos heterogéneos.
+
+</details>
+
+<details>
+<summary><strong>5. `Pedidos`</strong></summary>
+
 Registra las órdenes de compra.
 
 | Campo | Tipo | Relación | Descripción |
 |---|---:|---|---|
 | `IdPedido` | INT | PK | Identificador del pedido |
-| `IdCliente` | INT | FK → `Clientes.IdCliente` | Cliente que realiza la compra |
+| `IdCliente` | STRING | FK → `Clientes.IdCliente` | Cliente que realiza la compra |
 | `Estado pedido` | STRING |  | Estado del pedido |
+| `Cantidad` | INT |  | Cantidad total de artículos |
 | `Dirección de envío` | STRING |  | Dirección de entrega |
 | `Codigo Postal` | INT |  | Código postal de envío |
 | `Ciudad de envío` | STRING |  | Ciudad de entrega |
@@ -122,17 +241,21 @@ Registra las órdenes de compra.
 
 **Observación de diseño**
 - El sistema conserva la dirección de envío como parte del pedido para mantener el histórico exacto del momento de la compra.
-- El `País de envío` se separa del país del cliente porque un cliente puede residir en un país y recibir el pedido en otro.
-- Timestamps para tracking de envíos
+- El país de envío se separa del país del cliente porque un cliente puede residir en un país y recibir el pedido en otro.
+- El campo `IdCliente` aparece como `STRING` en la exportación; a nivel lógico debería ser compatible con `Clientes.IdCliente`.
 
-#### 6. `Linea_Pedidos`
+</details>
+
+<details>
+<summary><strong>6. `Linea_Pedidos`</strong></summary>
+
 Detalle de cada producto incluido en un pedido.
 
 | Campo | Tipo | Relación | Descripción |
 |---|---:|---|---|
 | `IdOrdenPedido` | INT | PK | Identificador de la línea |
 | `IdPedido` | INT | FK → `Pedidos.IdPedido` | Pedido al que pertenece |
-| `IdProducto` | INT | FK → `Productos.IdProducto` | Producto vendido |
+| `IDProducto` | INT | FK → `Productos.IdProducto` | Producto vendido |
 | `Cantidad` | INT |  | Unidades vendidas |
 | `Precio Unidad` | FLOAT |  | Precio unitario en el momento de la venta |
 | `Porcentaje descuento` | FLOAT |  | Descuento aplicado |
@@ -143,9 +266,12 @@ Detalle de cada producto incluido en un pedido.
 - `Precio Unidad` y `Porcentaje descuento` usan `FLOAT` para conservar decimales.
 - `Subtotal` se almacena para facilitar consultas y reportes sin recalcular constantemente.
 - La decisión de guardar el precio en la línea preserva el valor histórico aunque el precio del producto cambie después.
-- Se podria usar Clave compuesta (IdPedido, IdProdcto) pero se mantiene una clave principal para tener mayor flexibilidad.
 
-#### 7. `Pagos`
+</details>
+
+<details>
+<summary><strong>7. `Pagos`</strong></summary>
+
 Gestiona las transacciones de cobro y reembolso.
 
 | Campo | Tipo | Relación | Descripción |
@@ -159,12 +285,14 @@ Gestiona las transacciones de cobro y reembolso.
 | `Fecha de reembolso` | DATETIME |  | Fecha de devolución |
 
 **Observación de diseño**
-- Tabla separada de `Pedidos` para rastrear múltiples intentos de pago
-- `Estado `y fechas permiten auditoría de transacciones
 - La entidad de pagos queda separada del pedido para soportar estados de cobro y reembolso con trazabilidad.
 - El campo `Cantidad` representa el importe transaccionado.
 
-#### 8. `Reseñas`
+</details>
+
+<details>
+<summary><strong>8. `Reseñas`</strong></summary>
+
 Sistema de opinión de los clientes.
 
 | Campo | Tipo | Relación | Descripción |
@@ -176,13 +304,15 @@ Sistema de opinión de los clientes.
 | `Comentario` | TEXT |  | Texto libre |
 
 **Observación de diseño**
-- Relación a Linea_Pedidos en lugar de Productos para garantizar que solo se reseñan compras reales
-- Validación de integridad: cliente debe ser el que compró el producto
-- Permite reseñas múltiples del mismo producto por diferentes clientes
+- La reseña se vincula a una línea de pedido concreta, no directamente al producto, para asegurar que se reseñen compras reales.
+- Esto refuerza la trazabilidad entre compra y opinión.
+
+</details>
 
 ---
 
-## Análisis de Normalización 3NF
+<details>
+<summary><strong>Análisis de Normalización 3NF</strong></summary>
 
 ### 1NF
 La primera forma normal exige que cada atributo sea atómico.
@@ -220,6 +350,8 @@ La tercera forma normal exige que no existan dependencias transitivas entre atri
 
 #### `Clientes.País`
 - Está relacionado con `Paises`, porque el país es un dato fiscal y no una simple etiqueta textual.
+- En la exportación aparece como `STRING`, pero el modelo lógico lo trata como referencia a `IdPais`.
+- Conviene alinear el tipo físico con la FK si se implementa una versión final del esquema.
 
 #### `Pedidos.Dirección de envío`
 - Se almacena para conservar el estado exacto del pedido en el momento de compra.
@@ -228,10 +360,14 @@ La tercera forma normal exige que no existan dependencias transitivas entre atri
 #### `Linea_Pedidos.Precio Unidad`
 - Se almacena para congelar el precio aplicado en la venta.
 - Si el precio del producto cambia más adelante, no se alteran las líneas antiguas.
+- El uso de `FLOAT` favorece la representación de decimales, aunque para finanzas puras sería mejor `DECIMAL`.
+
+</details>
 
 ---
 
-## Decisiones de Diseño
+<details>
+<summary><strong>Decisiones de Diseño</strong></summary>
 
 ### Tipos numéricos
 - Los precios y descuentos se han documentado como `FLOAT` porque así aparece el esquema modificado.
@@ -248,9 +384,12 @@ La tercera forma normal exige que no existan dependencias transitivas entre atri
 - `Pagos` separa cobro y reembolso para tener trazabilidad completa.
 - `Reseñas` se ancla a una línea comprada para evitar opiniones de productos no adquiridos.
 
+</details>
+
 ---
 
-## Relaciones y Restricciones
+<details>
+<summary><strong>Relaciones y Restricciones</strong></summary>
 
 ### Relaciones principales
 - `Categoria_Productos.IdCategoria` → `Productos.IdCategoria`
@@ -269,4 +408,27 @@ La tercera forma normal exige que no existan dependencias transitivas entre atri
 3. No puede existir un pago sin pedido.
 4. No puede existir una reseña sin cliente y sin línea de compra real.
 5. No deben existir países referenciados por clientes o pedidos si todavía hay registros dependientes.
+
+</details>
+
+---
+
+<details>
+<summary><strong>Conclusión</strong></summary>
+
+El esquema actualizado de Temuzon mantiene una estructura relacional coherente y bastante cercana a 3NF, con algunas decisiones prácticas de desnormalización controlada para preservar histórico, trazabilidad y contexto operativo.
+
+Los cambios más relevantes respecto a la versión anterior son:
+- Eliminación del campo `Continente` en `Paises`
+- Uso de `FLOAT` para precios y descuentos en `Productos` y `Linea_Pedidos`
+- Ajuste del análisis para reflejar que algunos FKs aparecen tipados como `STRING` en la exportación
+- Refuerzo de la justificación histórica de `Pedidos`, `Linea_Pedidos` y `Pagos`
+
+En conjunto, el modelo favorece:
+- Integridad referencial
+- Auditoría de compras y pagos
+- Flexibilidad para operaciones reales de e-commerce
+- Menor redundancia estructural sin perder información importante
+
+</details>
 
