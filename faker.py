@@ -147,16 +147,12 @@ for i, (idx, row) in enumerate(resenas_sample.iterrows(), 1):
         'valoracion': random.randint(1, 5),
         'comentario': fake.text(max_nb_chars=120)
     })
-df_reseñas = pd.DataFrame(resenas)
+df_resenas = pd.DataFrame(resenas)
 
 
 # CARGA A BIGQUERY
-<<<<<<< Updated upstream
 def subir_a_bq(df, nombre_tabla):
     # Convertir todas las fechas a formato DATE para BigQuery
-=======
-def cargar_bq(df, table_name):
->>>>>>> Stashed changes
     for col in df.columns:
         if 'fecha' in col:
             df[col] = pd.to_datetime(df[col]).dt.date
@@ -169,24 +165,16 @@ def cargar_bq(df, table_name):
     tarea.result()
     print(f"✅ {len(df)} filas cargadas en {nombre_tabla}")
 
-<<<<<<< Updated upstream
-# Diccionario de tablas (nombres finales en BigQuery)
+# Diccionario de tablas
 tablas_finales = {
     "paises": df_paises,
     "categoria_productos": df_categoria_productos,
     "productos": df_productos,
     "clientes": df_clientes,
-=======
-tablas_dict = {
-    "paises": df_paises,
-    "categoria_productos": df_categoria_productos,
-    "clientes": df_clientes,
-    "productos": df_productos,
->>>>>>> Stashed changes
     "pedidos": df_pedidos,
     "linea_pedidos": df_lineas,
     "pagos": df_pagos,
-    "resenas": df_reseñas
+    "resenas": df_resenas
 }
 
 for nombre, df_obj in tablas_finales.items():
