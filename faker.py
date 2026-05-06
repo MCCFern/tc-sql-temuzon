@@ -1,164 +1,193 @@
+import os
+import pandas as pd
+import random
+from faker import Faker
+from datetime import timedelta
+from google.cloud import bigquery
+from dotenv import load_dotenv
+
+load_dotenv()
+
+GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "ds-temuzon")
+BQ_DATASET_ID = os.getenv("BQ_DATASET_ID", "temuzon")
+
+client = bigquery.Client(project=GCP_PROJECT_ID)
+fake = Faker('es_ES')
+Faker.seed(42)
+random.seed(42)
+
 #1.PAISES
-paises_random = []
-nombres_usados = set()
-
-while len(paises_random) < 10:
-    nombre_pais = fake.country()
-    if nombre_pais not in nombres_usados:
-        paises_random.append({
-            'IdPais': len(paises_random) + 1,
-            'Nombre': nombre_pais,
-            'IVA': random.choice([16, 18, 19, 21, 23, 25]) # Asignamos IVA aleatorio
+paises_lista = []
+nombres_vistos = set()
+while len(paises_lista) < 10:
+    nombre_p = fake.country()
+    if nombre_p not in nombres_vistos:
+        paises_lista.append({
+            'id_pais': len(paises_lista) + 1,
+            'nombre': nombre_p,
+            'iva': random.choice([16, 18, 19, 21, 23, 25])
         })
-        nombres_usados.add(nombre_pais)
-
-df_paises = pd.DataFrame(paises_random)
+        nombres_vistos.add(nombre_p)
+df_paises = pd.DataFrame(paises_lista)
 
 #2.CATEGORIAS_PRODUCTOS
-categorias_list = ['Smartphones', 'Laptops', 'Periféricos', 'Wearables', 'Audio']
+categorias_list = ['smartphones', 'laptops', 'perifericos', 'wearables', 'audio']
 df_categoria_productos = pd.DataFrame([
-    {'IdCategoria': i, 'Nombre': cat, 'Descripción': fake.sentence()} 
+    {'id_categoria': i, 'nombre': cat, 'descripción': fake.sentence()} 
     for i, cat in enumerate(categorias_list, 1)
 ])
 
 #3.CLIENTES
 clientes = []
+canales = ['organico', 'publicidad_de_pago', 'redes_sociales', 'directo', 'referido']
 for i in range(1, 501):
     clientes.append({
-        'IdCliente': i,
-        'Nombre': fake.first_name(),
-        'Apellidos': fake.last_name(),
-        'Dirección': fake.street_address(),
-        'Codigo Postal': fake.postcode(), # Faker genera CP realista
-        'Ciudad': fake.city(),
-        'País': random.choice(df_paises['IdPais']),
-        'Nº Identificacion': fake.dni(),
-        'Email': fake.email(),
-        'Telefono': fake.phone_number(),
-        'Canal de adquisición': random.choice(['organic', 'paid ads', 'social media', 'direct'])
+        'id_cliente': i,
+        'nombre': fake.first_name(),
+        'apellidos': fake.last_name(),
+        'direccion': fake.street_address(),
+        'codigo_postal': fake.postcode(),
+        'ciudad': fake.city(),
+        'pais': random.choice(df_paises['id_pais']),
+        'n_identificacion': fake.dni(),
+        'email': fake.email(),
+        'telefono': fake.phone_number(),
+        'canal_de_adquisicion': random.choice(canales)
     })
 df_clientes = pd.DataFrame(clientes)
 
 #4.PRODUCTOS
 productos = []
 for i in range(1, 71):
-    coste = round(random.uniform(50, 500), 2)
+    coste = round(random.uniform(40.0, 600.0), 2)
     productos.append({
-        'IdProducto': i,
-        'IdCategoria': random.choice(df_categoria_productos['IdCategoria']),
-        'Nombre': f"Tech {fake.word().capitalize()}",
-        'Precio de venta': round(coste * random.uniform(1.2, 1.7), 2),
-        'Coste': coste,
-        'Stock': random.randint(10, 200),
-        'Estado': random.choice(['Activo', 'Inactivo'])
+        'id_producto': i,
+        'id_categoria': random.choice(df_categoria_productos['id_categoria']),
+        'nombre': f"Tech {fake.word().capitalize()}",
+        'precio_de_venta': round(coste * random.uniform(1.2, 1.7), 2),
+        'coste': coste,
+        'stock': random.randint(5, 150),
+        'estado': random.choice(['activo', 'activo', 'inactivo'])
     })
 df_productos = pd.DataFrame(productos)
-precios_dict = df_productos.set_index('IdProducto')['Precio de venta'].to_dict()
-
+mapa_precios = df_productos.set_index('id_producto')['precio_de_venta'].to_dict()
 #5.PEDIDOS
 pedidos = []
+estados_ped = ['pendiente', 'enviado', 'entregado', 'cancelado']
 for i in range(1, 2001):
     f_pedido = fake.date_between(start_date='-1y', end_date='today')
     pedidos.append({
-        'IdPedido': i,
-        'IdCliente': random.choice(df_clientes['IdCliente']),
-        'Estado pedido': random.choice(['pending', 'shipped', 'delivered', 'cancelled']),
-        'Cantidad': 0, # Se suma después
-        'Dirección de envío': fake.street_address(),
-        'Codigo Postal': fake.postcode(), # CP específico del envío
-        'Ciudad de envío': fake.city(),
-        'País de envío': random.choice(df_paises['IdPais']),
-        'Método de envío': random.choice(['Standard', 'Express']),
-        'Fecha de envío': f_pedido + timedelta(days=2),
-        'Fecha de reparto': f_pedido + timedelta(days=5),
-        'Notas': fake.sentence() if random.random() > 0.8 else ""
+        'id_pedido': i,
+        'id_cliente': random.choice(df_clientes['id_cliente']),
+        'estado_pedido': random.choices(estados_ped, weights=[10, 20, 60, 10])[0],
+        'cantidad': 0, # Se actualizará con la suma de lineas
+        'direccion_de_envio': fake.street_address(),
+        'codigo_postal': fake.postcode(),
+        'ciudad_de_envio': fake.city(),
+        'pais_de_envio': random.choice(df_paises['id_pais']),
+        'metodo_de_envio': random.choice(['Estándar', 'Express']),
+        'fecha_de_envio': f_pedido + timedelta(days=random.randint(1, 2)),
+        'fecha_de_reparto': f_pedido + timedelta(days=random.randint(3, 5)),
+        'notas': fake.sentence() if random.random() > 0.8 else ""
     })
 df_pedidos = pd.DataFrame(pedidos)
 
 #6.LINEA_PEDIDOS
 lineas = []
-acc_id = 1
-for p_id in df_pedidos['IdPedido']:
-    num_prods = random.randint(1, 3)
-    total_items_pedido = 0
-    for _ in range(num_prods):
-        prod_id = random.choice(df_productos['IdProducto'])
-        cantidad = random.randint(1, 2)
-        precio_uni = precios_dict[prod_id]
-        desc = random.choice([0, 5, 10]) #Porcentaje de descuento
+id_linea_acc = 1
+for p_id in df_pedidos['id_pedido']:
+    items_en_pedido = 0
+    for _ in range(random.randint(1, 3)):
+        prod_id = random.choice(df_productos['id_producto'])
+        cant = random.randint(1, 2)
+        precio_u = mapa_precios[prod_id]
+        desc_pct = random.choice([0, 0, 5, 10])
         
-        #Cálculo del subtotal: (Precio * Cantidad) - Descuento
-        subtotal = (precio_uni * cantidad) * (1 - desc/100)
+        subtotal = (precio_u * cant) * (1 - desc_pct/100)
         
         lineas.append({
-            'IdOrdenPedido': acc_id,
-            'IdPedido': p_id,
-            'IdProducto': prod_id,
-            'Cantidad': cantidad,
-            'Precio Unidad': precio_uni,
-            'Porcentaje descuento': desc,
-            'Subtotal': round(subtotal, 2)
+            'id_orden_pedido': id_linea_acc,
+            'id_pedido': p_id,
+            'id_producto': prod_id,
+            'cantidad': cant,
+            'precio_unidad': precio_u,
+            'porcentaje_descuento': desc_pct,
+            'subtotal': round(subtotal, 2)
         })
-        total_items_pedido += cantidad
-        acc_id += 1
-    # Actualizar la cantidad total en el pedido
-    df_pedidos.loc[df_pedidos['IdPedido'] == p_id, 'Cantidad'] = total_items_pedido
+        items_en_pedido += cant
+        id_linea_acc += 1
+    # Actualizar cantidad total en la tabla de pedidos
+    df_pedidos.loc[df_pedidos['id_pedido'] == p_id, 'cantidad'] = items_en_pedido
 
 df_lineas = pd.DataFrame(lineas)
 
 #7.PAGOS
 pagos = []
 for i, row in df_pedidos.iterrows():
-    total_pago = df_lineas[df_lineas['IdPedido'] == row['IdPedido']]['Subtotal'].sum()
+    monto_total = df_lineas[df_lineas['id_pedido'] == row['id_pedido']]['subtotal'].sum()
     pagos.append({
-        'IdPago': i + 1,
-        'IdPedido': row['IdPedido'],
-        'Cantidad': round(total_pago, 2),
-        'Metodo de pago': random.choice(['Tarjeta', 'PayPal']),
-        'Estado': 'Completado' if row['Estado pedido'] != 'cancelled' else 'Reembolsado',
-        'Fecha de cobro': row['Fecha de envío'],
-        'Fecha de reembolso': row['Fecha de reparto'] if row['Estado pedido'] == 'cancelled' else None
+        'id_pago': i + 1,
+        'id_pedido': row['id_pedido'],
+        'cantidad': round(monto_total, 2),
+        'metodo_de_pago': random.choice(['Tarjeta', 'PayPal', 'Transferencia']),
+        'estado': 'completado' if row['estado_pedido'] != 'cancelado' else 'reembolsado',
+        'fecha_de_cobro': row['fecha_de_envio'],
+        'fecha_de_reembolso': row['fecha_de_reparto'] if row['estado_pedido'] == 'cancelado' else None
     })
 df_pagos = pd.DataFrame(pagos)
 
 #8.RESEÑAS
-reseñas_sample = df_lineas.sample(frac=0.3)
-reseñas = []
-for i, (idx, row) in enumerate(reseñas_sample.iterrows(), 1):
-    reseñas.append({
-        'IdReseña': i,
-        'IdOrdenPedido': row['IdOrdenPedido'],
-        'IdCliente': df_pedidos.loc[df_pedidos['IdPedido'] == row['IdPedido'], 'IdCliente'].values[0],
-        'Valoración': random.randint(1, 5),
-        'Comentario': fake.text(max_nb_chars=100)
+resenas_sample = df_lineas.sample(frac=0.3)
+resenas = []
+for i, (idx, row) in enumerate(resenas_sample.iterrows(), 1):
+    resenas.append({
+        'id_reseña': i,
+        'id_orden_pedido': row['id_orden_pedido'],
+        'id_cliente': df_pedidos.loc[df_pedidos['id_pedido'] == row['id_pedido'], 'id_cliente'].values[0],
+        'valoracion': random.randint(1, 5),
+        'comentario': fake.text(max_nb_chars=120)
     })
-df_reseñas = pd.DataFrame(reseñas)
+df_reseñas = pd.DataFrame(resenas)
 
 
 # CARGA A BIGQUERY
-
-
+<<<<<<< Updated upstream
+def subir_a_bq(df, nombre_tabla):
+    # Convertir todas las fechas a formato DATE para BigQuery
+=======
 def cargar_bq(df, table_name):
+>>>>>>> Stashed changes
     for col in df.columns:
-        if 'Fecha' in col:
-            df[col] = pd.to_datetime(df[col])
+        if 'fecha' in col:
+            df[col] = pd.to_datetime(df[col]).dt.date
             
-    table_id = f"{PROJECT_ID}.{DATASET_ID}.{table_name}"
-    job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
-    job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
-    job.result()
-    print(f"Cargada tabla: {table_name}")
+    id_tabla_full = f"{GCP_PROJECT_ID}.{BQ_DATASET_ID}.{nombre_tabla}"
+    config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
+    
+    print(f"Cargando {nombre_tabla}...")
+    tarea = client.load_table_from_dataframe(df, id_tabla_full, job_config=config)
+    tarea.result()
+    print(f"✅ {len(df)} filas cargadas en {nombre_tabla}")
 
+<<<<<<< Updated upstream
+# Diccionario de tablas (nombres finales en BigQuery)
+tablas_finales = {
+    "paises": df_paises,
+    "categoria_productos": df_categoria_productos,
+    "productos": df_productos,
+    "clientes": df_clientes,
+=======
 tablas_dict = {
-    "Paises": df_paises,
-    "Categoria_Productos": df_categoria_productos,
-    "Clientes": df_clientes,
-    "Productos": df_productos,
-    "Pedidos": df_pedidos,
-    "Linea_Pedidos": df_lineas,
-    "Pagos": df_pagos,
-    "Reseñas": df_reseñas
+    "paises": df_paises,
+    "categoria_productos": df_categoria_productos,
+    "clientes": df_clientes,
+    "productos": df_productos,
+>>>>>>> Stashed changes
+    "pedidos": df_pedidos,
+    "linea_pedidos": df_lineas,
+    "pagos": df_pagos,
+    "resenas": df_reseñas
 }
 
-for nombre, dataframe in tablas_dict.items():
-    cargar_bq(dataframe, nombre)
+for nombre, df_obj in tablas_finales.items():
+    subir_a_bq(df_obj, nombre)
