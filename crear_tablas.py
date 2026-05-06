@@ -62,7 +62,7 @@ schema_pedidos = [
     bigquery.SchemaField("id_pedido",       "INT64",    mode="REQUIRED"),
     bigquery.SchemaField("id_cliente",      "INT64",    mode="REQUIRED"),  # FK clientes
     bigquery.SchemaField("estado_pedido",   "STRING",   mode="REQUIRED"),
-    bigquery.SchemaField("cantidad",        "FLOAT64",    mode="REQUIRED"),
+    bigquery.SchemaField("cantidad",        "INT64",    mode="REQUIRED"),
     bigquery.SchemaField("direccion_envio", "STRING",   mode="NULLABLE"),
     bigquery.SchemaField("codigo_postal",   "STRING",   mode="NULLABLE"),
     bigquery.SchemaField("ciudad_envio",    "STRING",   mode="NULLABLE"),
@@ -79,14 +79,14 @@ schema_linea_pedidos = [
     bigquery.SchemaField("id_producto",          "INT64",   mode="REQUIRED"),  # FK productos
     bigquery.SchemaField("cantidad",             "INT64",   mode="REQUIRED"),
     bigquery.SchemaField("precio_unidad",        "FLOAT64", mode="REQUIRED"),
-    bigquery.SchemaField("porcentaje_descuento", "FLOAT64", mode="NULLABLE"),
+    bigquery.SchemaField("porcentaje_descuento", "INT64", mode="REQUIRED"),
     bigquery.SchemaField("subtotal",             "FLOAT64",   mode="REQUIRED"),
 ]
 
 schema_pagos = [
     bigquery.SchemaField("id_pago",         "INT64",    mode="REQUIRED"),
     bigquery.SchemaField("id_pedido",       "INT64",    mode="REQUIRED"),  # FK pedidos
-    bigquery.SchemaField("cantidad",        "FLOAT64",    mode="REQUIRED"),
+    bigquery.SchemaField("total",        "FLOAT64",    mode="REQUIRED"),
     bigquery.SchemaField("metodo_pago",     "STRING",   mode="REQUIRED"),
     bigquery.SchemaField("estado",          "STRING",   mode="REQUIRED"),
     bigquery.SchemaField("fecha_cobro",     "DATETIME", mode="NULLABLE"),
