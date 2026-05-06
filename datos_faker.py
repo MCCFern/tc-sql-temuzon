@@ -49,7 +49,7 @@ for i in range(1, 501):
         'codigo_postal': fake.postcode(),
         'ciudad': fake.city(),
         'pais': random.choice(df_paises['id_pais']),
-        'n_identificacion': fake.dni(),
+        'n_identificacion': fake.nif(),
         'email': fake.email(),
         'telefono': fake.phone_number(),
         'canal_de_adquisicion': random.choice(canales)
