@@ -40,10 +40,10 @@ Tabla maestra que centraliza la información fiscal y geográfica de cada país.
 |---|---:|---|
 | `IdPais` | INT | Identificador único de país, clave primaria |
 | `Nombre` | STRING | Nombre del país |
-| `IVA` | INT | Porcentaje de impuesto aplicado en ese país |
+| `IVA` | FLOAT | Porcentaje de impuesto aplicado en ese país |
 
 **Observación de diseño**
-- Se eliminó el campo `Continente` porque no aporta valor funcional directo al modelo transaccional.
+
 - Esta tabla se utiliza como referencia fiscal tanto para clientes como para pedidos.
 
 </details>
@@ -82,8 +82,7 @@ Representa el inventario vendible.
 
 **Observación de diseño**
 - Los importes pasan a `FLOAT` en el esquema actual, lo que permite decimales.
-- Si el modelo se usara para facturación estricta, `DECIMAL` sería una opción más robusta, pero aquí se documenta el esquema real exportado.
-
+- Si el modelo se usara para facturación estricta, `DECIMAL` sería una opción más robusta.
 </details>
 
 <details>
@@ -97,18 +96,16 @@ Contiene la información de los clientes del sistema.
 | `Nombre` | STRING |  | Nombre |
 | `Apellidos` | STRING |  | Apellidos |
 | `Dirección` | STRING |  | Dirección postal |
-| `Codigo Postal` | INT |  | Código postal |
+| `Codigo Postal` | STRING |  | Código postal |
 | `Ciudad` | STRING |  | Ciudad |
-| `País` | STRING | FK → `Paises.IdPais` | País de residencia |
+| `País` | INT | FK → `Paises.IdPais` | País de residencia |
 | `Nº Identificacion` | STRING |  | Documento de identidad |
 | `Email` | STRING |  | Correo electrónico |
 | `Telefono` | STRING |  | Teléfono |
 | `Canal de adquisición` | STRING |  | Origen de captación del cliente |
 
 **Observación de diseño**
-- El campo `País` se documenta como `STRING` porque así aparece en la exportación, pero lógicamente actúa como una FK a `Paises.IdPais`.
-- En una versión final convendría alinear el tipo físico con la PK referenciada para evitar inconsistencias de implementación.
-- `Nº Identificacion` permanece como texto porque puede incluir formatos heterogéneos.
+- `Nº Identificacion`, `Codigo postal` y `Telefono` permanece como texto porque puede incluir formatos heterogéneos.
 
 </details>
 
@@ -120,7 +117,7 @@ Registra las órdenes de compra.
 | Campo | Tipo | Relación | Descripción |
 |---|---:|---|---|
 | `IdPedido` | INT | PK | Identificador del pedido |
-| `IdCliente` | STRING | FK → `Clientes.IdCliente` | Cliente que realiza la compra |
+| `IdCliente` | INT | FK → `Clientes.IdCliente` | Cliente que realiza la compra |
 | `Estado pedido` | STRING |  | Estado del pedido |
 | `Cantidad` | INT |  | Cantidad total de artículos |
 | `Dirección de envío` | STRING |  | Dirección de entrega |
@@ -135,7 +132,7 @@ Registra las órdenes de compra.
 **Observación de diseño**
 - El sistema conserva la dirección de envío como parte del pedido para mantener el histórico exacto del momento de la compra.
 - El país de envío se separa del país del cliente porque un cliente puede residir en un país y recibir el pedido en otro.
-- El campo `IdCliente` aparece como `STRING` en la exportación; a nivel lógico debería ser compatible con `Clientes.IdCliente`.
+
 
 </details>
 
@@ -151,12 +148,12 @@ Detalle de cada producto incluido en un pedido.
 | `IDProducto` | INT | FK → `Productos.IdProducto` | Producto vendido |
 | `Cantidad` | INT |  | Unidades vendidas |
 | `Precio Unidad` | FLOAT |  | Precio unitario en el momento de la venta |
-| `Porcentaje descuento` | FLOAT |  | Descuento aplicado |
-| `Subtotal` | INT |  | Total calculado de la línea |
+| `Porcentaje descuento` | INT |  | Descuento aplicado |
+| `Subtotal` | FLOAT |  | Total calculado de la línea |
 
 **Observación de diseño**
 - La tabla separa la relación N:M entre pedidos y productos.
-- `Precio Unidad` y `Porcentaje descuento` usan `FLOAT` para conservar decimales.
+- `Precio Unidad` y `Subtotal` usan `FLOAT` para conservar decimales, mientras que `Porcentaje descuento` es INT porque se trata de un porcentaje de 0 a 100%
 - `Subtotal` se almacena para facilitar consultas y reportes sin recalcular constantemente.
 - La decisión de guardar el precio en la línea preserva el valor histórico aunque el precio del producto cambie después.
 
@@ -171,7 +168,7 @@ Gestiona las transacciones de cobro y reembolso.
 |---|---:|---|---|
 | `IdPago` | INT | PK | Identificador del pago |
 | `IdPedido` | INT | FK → `Pedidos.IdPedido` | Pedido asociado |
-| `Cantidad` | INT |  | Importe pagado |
+| `Total` | FLOAT |  | Importe pagado |
 | `Metodo de pago` | STRING |  | Medio de pago |
 | `Estado` | STRING |  | Estado de la transacción |
 | `Fecha de cobro` | DATETIME |  | Fecha de cobro |
@@ -179,7 +176,7 @@ Gestiona las transacciones de cobro y reembolso.
 
 **Observación de diseño**
 - La entidad de pagos queda separada del pedido para soportar estados de cobro y reembolso con trazabilidad.
-- El campo `Cantidad` representa el importe transaccionado.
+- El campo `Total` representa el importe transaccionado.
 
 </details>
 
@@ -242,8 +239,7 @@ La tercera forma normal exige que no existan dependencias transitivas entre atri
 
 #### `Clientes.País`
 - Está relacionado con `Paises`, porque el país es un dato fiscal y no una simple etiqueta textual.
-- En la exportación aparece como `STRING`, pero el modelo lógico lo trata como referencia a `IdPais`.
-- Conviene alinear el tipo físico con la FK si se implementa una versión final del esquema.
+
 
 #### `Pedidos.Dirección de envío`
 - Se almacena para conservar el estado exacto del pedido en el momento de compra.
@@ -260,7 +256,7 @@ La tercera forma normal exige que no existan dependencias transitivas entre atri
 ## Decisiones de Diseño
 
 ### Tipos numéricos
-- Los precios y descuentos se han documentado como `FLOAT` porque así aparece el esquema modificado.
+- Los precios se han documentado como `FLOAT`.
 - Para importes contables críticos, `DECIMAL` sería más seguro, pero el documento debe reflejar el modelo actual.
 - `Stock` y cantidades se mantienen como `INT` porque representan unidades completas.
 
