@@ -34,7 +34,7 @@ tc-sql-Temuzon/
 Vacío. Los datos se encuentran en BigQuery.
 
 ### 📂 docs/
-Documentación del modelo de datos y diagrama de normalización. El diagrama se creó con [Ir a dbdiagram](https://dbdiagram.io/)
+Documentación del modelo de datos y diagrama de normalización. El diagrama se creó con [dbdiagram](https://dbdiagram.io/). También se encuentra el archivo marckdown con la información de la normalización de los datos.
 
 ### 📂 notebooks/
 Notebooks de análisis:
