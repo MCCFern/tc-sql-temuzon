@@ -1,5 +1,5 @@
 # tc-sql-temuzon
-Projecto grupal de SLQ para The Bridge DS
+
 ![Logo_Temuzon](./notebooks/temuzon_logo.jpg)
 
 
@@ -40,7 +40,7 @@ Documentación del modelo de datos y diagrama de normalización. El diagrama se 
 Notebooks de análisis:
 - `queries_verification.ipynb` → Archivo con las queries utilizadas para verificar el correcto funcionamiento de la conexión con BigQuery
 - SQL Murder Mystery (primera parte del Team Challenge)
-- `creacion_dataset_tablas_normalization.ipynb` → Normalización de los datos y configuración inicial de las tablas en BigQuery
+- `creacion_dataset_tablas.ipynb` → Configuración inicial de las tablas en BigQuery
 - `datos_faker.ipynb` → Generación de datos con faker
 
 ### 🔐 credentials/
@@ -85,7 +85,9 @@ Será necesario completar los datos con los específicos del proyecto al que se 
 Una vez solventado, estas serán las variables de entorno (.env) que se crearán para asegurar la conexión con la base de datos:
 
 GCP_PROJECT_ID=your_project_id
+
 BQ_DATASET_ID=your_dataset_id
+
 GOOGLE_APPLICATION_CREDENTIALS=ruta_a_credentials.json
 
 ### 3. Realizar las queries para analizar los datos
