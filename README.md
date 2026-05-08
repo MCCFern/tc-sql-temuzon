@@ -40,7 +40,7 @@ Documentación del modelo de datos y diagrama de normalización. El diagrama se 
 Notebooks de análisis:
 - `queries_verification.ipynb` → Archivo con las queries utilizadas para verificar el correcto funcionamiento de la conexión con BigQuery
 - SQL Murder Mystery (primera parte del Team Challenge)
-- `creacion_dataset_tablas_normalization.ipynb` → Normalización de los datos y configuración inicial de las tablas en BigQuery
+- `creacion_dataset_tablas.ipynb` → Configuración inicial de las tablas en BigQuery
 - `datos_faker.ipynb` → Generación de datos con faker
 
 ### 🔐 credentials/
