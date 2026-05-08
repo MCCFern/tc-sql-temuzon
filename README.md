@@ -1,5 +1,5 @@
 # tc-sql-temuzon
-Projecto grupal de SLQ para The Bridge DS
+
 ![Logo_Temuzon](./notebooks/temuzon_logo.jpg)
 
 
@@ -85,7 +85,9 @@ Será necesario completar los datos con los específicos del proyecto al que se 
 Una vez solventado, estas serán las variables de entorno (.env) que se crearán para asegurar la conexión con la base de datos:
 
 GCP_PROJECT_ID=your_project_id
+
 BQ_DATASET_ID=your_dataset_id
+
 GOOGLE_APPLICATION_CREDENTIALS=ruta_a_credentials.json
 
 ### 3. Realizar las queries para analizar los datos
