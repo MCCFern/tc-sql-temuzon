@@ -1,0 +1,55 @@
+NOTAS DE PRESENTACIÓN — EJERCICIO BI LOOKER STUDIO
+================================================
+
+Ventana de análisis: 2025-06-01 a 2026-04-30 (11 meses completos).
+Se excluyen mayo de 2025 y mayo de 2026 porque están incompletos.
+
+PREGUNTA DE NEGOCIO
+Temuzon es una empresa de e-commerce que necesita analizar sus datos de ventas, clientes, pedidos y logística, actualmente dispersos, ¿para tomar qué decisiones?
+
+CANVAS DE KPIs
+
+  KPI 1: Ingresos Netos — 2.116.408 €
+    Pregunta que responde: ¿El negocio crece, se estanca o cae?
+    Gráfico: Scorecard con comparación al periodo anterior + línea temporal mensual debajo.
+    Justificación: Es el contexto obligatorio: ningún otro número significa nada sin él. Va primero por convención de lectura (esquina superior izquierda), no porque sea el más accionable. Se llama "netos" porque excluye los pedidos cancelados y no incluye IVA — es lo que realmente entra en caja.
+
+  KPI 2: Margen bruto — 28,6 %
+    Pregunta que responde: ¿Vendiendo más, ganamos más?
+    Gráfico: Scorecard + barras horizontales ordenadas por categoría.
+    Justificación: Es el KPI que separa facturar de ganar. Con los ingresos planos, el margen es la única palanca que queda: un punto porcentual de margen son unos 21.000 € al año sin vender ni una unidad más. Se muestra en porcentaje y no en euros porque en euros se confunde con crecimiento de volumen. Se calcula como SUM(margen) / SUM(ingresos_netos), nunca promediando el ratio de cada línea: eso daría 27,4 % en vez de 28,6 %.
+
+  KPI 3: Ticket medio (AOV) — 1.295 €
+    Pregunta que responde: ¿Más pedidos o pedidos más caros?
+    Gráfico: Scorecard con comparación al periodo anterior.
+    Justificación: Descompone el KPI 1 en sus dos motores. Sin él, una caída de ingresos es un misterio; con él, se sabe si el problema es de captación (menos pedidos) o de cesta (pedidos más pequeños). Se calcula sobre los totales agregados, nunca promediando un AOV por fila.
+
+  KPI 4: Euros regalados en descuento — 79.216 € (13,1 % del margen)
+    Pregunta que responde: ¿Cuánto margen estamos entregando en descuentos y qué compramos con él?
+    Gráfico: Scorecard + barras agrupadas por tramo de descuento (0 % / 5 % / 10 %) mostrando unidades por línea y margen %.
+    Justificación: Es el KPI incómodo, y el único de los cinco con una palanca directa: se decide mañana en una reunión de pricing. El descuento no aparece en ningún estado financiero como gasto, así que nadie lo mira — pero 79 k€ es más que dos tercios del margen anual de toda la categoría laptops (117 k€).
+
+  KPI 5: Tasa de cancelación — 9,7 % (245.509 €)
+    Pregunta que responde: ¿Cuánto de lo que vendemos se cae antes de cobrarse?
+    Gráfico: Scorecard + línea temporal mensual para detectar picos.
+    Justificación: Uno de cada diez pedidos se cancela. En euros son 245 k€ —más que el margen anual completo de laptops— y a diferencia del descuento, esto ya ha consumido coste de captación, picking y atención al cliente. Se mide como tasa y no en euros absolutos para que sea comparable entre meses de distinto tamaño.
+
+
+LA HISTORIA
+  Insight: Temuzon lleva un año facturando lo mismo cada mes, pero pierde 325.000 € al año en dos fugas.
+
+1. El descuento cuesta 79.216 € y no compra volumen. La mitad de las líneas de pedido (49,3 %) llevan descuento del 5 % o del 10 %. El margen cae en línea recta con el tramo: 31,2 % → 27,3 % → 23,5 %. Estamos pagando 79 k€ por un incremento de volumen de exactamente cero.
+
+2. El 33 % de la facturación viene de productos marcados como "inactivo". 26 de los 70 productos del catálogo tienen estado = 'inactivo' y aun así facturaron 698.584 € — con mejor margen que los activos (30,5 % vs 27,6 %).
+
+3. Se cancela 1 de cada 10 pedidos: 245.509 €. Y el margen está muy concentrado: 14 productos (el 20 % del catálogo) generan el 41,8 % del margen total. Uno de ellos, Tech Común (14.723 € de margen), tiene stock para 1,1 meses.
+
+  Recomendación: Primero: auditar el campo estado del catálogo. Va primero porque un tercio de la facturación está clasificada de forma incoherente y eso invalida cualquier análisis de surtido que hagamos encima. Coste: una tarde de trabajo.
+
+Segundo: pasar el descuento de automático a condicionado. Propuesta: reservarlo para liquidar las referencias con más de 12 meses de cobertura de stock, o para superar un umbral de ticket. Validación antes de generalizar: test A/B de 6 semanas en una categoría, midiendo unidades por línea y margen %.
+
+Tercero: reponer las tres referencias en riesgo (Tech Común, Tech Tal, Tech Menos: menos de 3 meses de cobertura), y desplazar el mix hacia laptops. Laptops rinde al 33,4 % de margen frente al 26,3 % de audio; cada euro de venta que se mueve de una a otra vale 7 puntos de margen.
+
+PREPARACIÓN STAKEHOLDER
+  Pregunta practicada: ¿Cómo sé que esta tendencia no es simplemente estacionalidad?
+  Respuesta: Con una media de 192.401 € al mes, los ingresos se mueven entre −9 % y +15 % sin dirección, y el único pico esperable es diciembre (220.920 €). El margen porcentual es todavía más plano: entre 27,8 % y 29,3 % los once meses. No hay tendencia temporal, todos los meses se pierde 13 % de margen en descuentos.

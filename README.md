@@ -35,6 +35,13 @@ Vacío. Los datos se encuentran en BigQuery.
 
 ### 📂 docs/
 Documentación del modelo de datos y diagrama de normalización. El diagrama se creó con [dbdiagram](https://dbdiagram.io/). También se encuentra el archivo marckdown con la información de la normalización de los datos.
+- `normalization.md` → modelo relacional y análisis de 3NF
+- `bi_looker_studio.md` → ejercicio de Business Intelligence: pregunta de negocio, canvas de KPIs, insights y guion del dashboard de Looker Studio
+
+### 📂 sql/
+Consultas listas para pegar en Looker Studio como *consulta personalizada* sobre BigQuery:
+- `looker_ventas_lineas.sql` → fuente principal, grano línea de pedido (KPIs comerciales)
+- `looker_pedidos.sql` → fuente secundaria, grano pedido (métricas logísticas sin sesgo de grano)
 
 ### 📂 notebooks/
 Notebooks de análisis:
