@@ -5,13 +5,13 @@
 
 # 📊 E-commerce Data Pipeline con BigQuery
 
-Este proyecto implementa un flujo completo de generación, carga y análisis de datos de un sistema e-commerce utilizando Google BigQuery como almacén de datos.
+Proyecto formativo de generación, carga y análisis de **datos sintéticos de comercio electrónico generados con Faker**, utilizando Google BigQuery como almacén de datos. Los importes y clientes del ejercicio no corresponden a la actividad real de una empresa.
 
 ---
 
 ## Objetivo
 
-Construir una base de datos analítica en la nube con datos generados por faker y realizar consultas SQL para extraer información sore el negocio como:
+Construir una base de datos analítica en la nube con datos generados por faker y realizar consultas SQL para extraer información sobre el negocio como:
 
 - Clientes por país
 - Productos más vendidos
@@ -34,7 +34,7 @@ tc-sql-Temuzon/
 Vacío. Los datos se encuentran en BigQuery.
 
 ### 📂 docs/
-Documentación del modelo de datos y diagrama de normalización. El diagrama se creó con [dbdiagram](https://dbdiagram.io/). También se encuentra el archivo marckdown con la información de la normalización de los datos.
+Documentación del modelo de datos y diagrama de normalización. El diagrama se creó con [dbdiagram](https://dbdiagram.io/). También se encuentra el archivo Markdown con la información de la normalización de los datos.
 - `normalization.md` → modelo relacional y análisis de 3NF
 - `bi_looker_studio.md` → ejercicio de Business Intelligence: pregunta de negocio, canvas de KPIs, insights y guion del dashboard de Looker Studio
 
@@ -77,7 +77,7 @@ Notebooks de análisis:
 
 Usaremos de ejemplo las tablas presentes en nuestra base de datos de Temuzon.
 
-### 1. Se debe crear el entrono virtual donde instalar las dependencias descritas en requirements.txt
+### 1. Se debe crear el entorno virtual donde instalar las dependencias descritas en requirements.txt
 
 ```python
 python -m venv venv
@@ -100,3 +100,16 @@ GOOGLE_APPLICATION_CREDENTIALS=ruta_a_credentials.json
 ### 3. Realizar las queries para analizar los datos
 
 Para ver ejemplos de ejecución, revisar notebooks/queries_verification.ipynb
+
+## Dashboard y revisión sin acceso a BigQuery
+
+El diseño del dashboard, sus KPIs, decisiones de agregación y límites del dato
+están documentados en [el ejercicio de BI](docs/bi_looker_studio.md).
+Las fuentes SQL están en [ventas por línea](sql/looker_ventas_lineas.sql) y
+[pedidos](sql/looker_pedidos.sql). La guía está en
+[Guía de referencia de Looker Studio](docs/Guia_Referencia_Looker_Studio.html).
+
+Estos archivos permiten revisar el diseño, pero no acreditan un dashboard
+publicado y terminado. Este repositorio todavía no incluye un enlace verificado
+ni capturas de ese dashboard. Los logotipos y las imágenes de soluciones SQL no
+deben interpretarse como capturas del informe de BI.
